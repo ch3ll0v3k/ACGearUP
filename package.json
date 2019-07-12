@@ -1,0 +1,23 @@
+{
+  "name": "ACGearUP",
+  "version": "1.1.2",
+  "description": "Assetto-Corsa PS4: Telemetry and Chat server",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "alertifyjs": "^1.11.4",
+    "axios": "0.19.0",
+    "bin-protocol": "3.1.1",
+    "electron": "5.0.6",
+    "generate-safe-id": "^1.0.2",
+    "jquery": "3.1.1",
+    "mii-logger.js": "^1.1.77",
+    "socket.io": "^2.2.0",
+    "socket.io-client": "^2.2.0"
+  }
+}

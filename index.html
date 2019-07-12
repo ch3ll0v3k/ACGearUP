@@ -1,0 +1,574 @@
+<script>
+  
+const { dialog } = require('electron').remote;
+// console.log(dialog.showOpenDialog({
+//   title: '*title*',
+//   // properties: ['openFile', 'openDirectory', 'multiSelections']
+// }));
+// console.log(dialog.showMessageBox({
+//   type: 'info', // "none", "info", "error", "question" or "warning",
+//   buttons: ['OK','NO-OK', 'TEST', '123'], //  String - Array of texts for buttons. On Windows, an empty array will result in one button labeled "OK".
+//   // defaultId:  Integer (optional) - Index of the button in the buttons array which will be selected by default when the message box opens.
+//   title: 'Title of the message box',
+//   message: 'Content of the message box',
+//   detail: 'Extra information of the message',
+// }));
+
+</script>
+<!DOCTYPE html>
+<html lang="en">
+  <head> 
+    <meta charset="UTF-8"/>
+    <title>ACGearUP</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="./css/main.css"/>
+    <!-- <script sync src="./js/jquery-3.3.1.slim.min.js"></script> -->
+
+    <script type="text/javascript">
+      window.$ = jQuery = require('jquery');
+    </script>
+    <script src="./js/popper.min.js"></script>
+    <script src="./js/MiiCanvas.js"></script>
+    <script sync src="./js/bootstrap.min.js"></script>
+
+  </head>
+  <body>
+
+    <script type="text/javascript">
+
+    const TABs = {
+      telemetry: $('#telemetry-tab'),
+      lapmap: $('#lapmap-tab'),
+      chat: $('#chat-tab'),
+      settings: $('#settings-tab'),
+    };
+
+
+    let meta = {
+      carName: 'n/a',
+      trackName: 'n/a',
+      driverName: 'n/a',
+      trackConfig: 'n/a',
+    };
+
+    let coords = [];
+    let laps = [];
+
+    const W = 640;
+    const H = 640;
+
+    const CW = W/2;
+    const CH = H/2;
+
+    onLoad(function() {
+
+      // return;
+
+      let MiiCan = new MiiCanvas({canvasId:'my-canvas-0', W, H});
+      MiiCan.setBg( '#444' );
+
+      MiiCan.setFrameRate( 15 );
+      MiiCan.onFrame(function( frame, mSecPast, secPast ){
+
+        try{
+
+          MiiCan.clear();
+          MiiCan.clearInfoTextIndex();
+
+          // MiiCan.drawLine( 30, 100, 200, 160, '#FF0' );
+          // MiiCan.drawDot( x, y, 2, '#aaa' );
+
+          for( let i in coords ){
+            MiiCan.drawDot( CW+coords[i].x, CH+coords[i].y, 2, ( coords[i].speed_tracker ? '#0F5' : '#F50' ) );
+          }
+          MiiCan.drawDot( CW+coords[ coords.length -1 ].x, CH+coords[ coords.length -1 ].y, 3, '#000' );
+        }catch(e){}
+
+      });
+
+      MiiCan.startAnimation();
+
+    });
+
+    </script>
+
+    <!-- <div class="p-2" style="height: 38px; box-sizing: border-box;">
+      <div class="" style="float: right;">
+        <button class="btn btn-sm btn-primary" id="reset-connection-btn">
+          Reset connection
+        </button>
+      </div>
+    </div>
+    <hr/> -->
+
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="telemetry-tab" data-toggle="tab" href="#telemetry" role="tab" aria-controls="telemetry" aria-selected="true">Telemetry</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="lapmap-tab" data-toggle="tab" href="#lapmap" role="tab" aria-controls="lapmap" aria-selected="false">Lap-Map</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="chat-tab" data-toggle="tab" href="#chat" role="tab" aria-controls="chat" aria-selected="false">Chat</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Settings</a>
+      </li>
+
+      <div class="p-2" style="height: 38px; box-sizing: border-box;">
+        <div class="" style="float: right;">
+          <button class="btn btn-sm btn-primary" id="reset-connection-btn">
+            Reset connection
+          </button>
+        </div>
+      </div>
+
+      <div class="p-2" style="height: 38px; box-sizing: border-box;">
+        <div class="" style="float: right;">
+          <button class="btn btn-sm btn-primary" id="clear-collected-data-btn">
+            Clear collected data
+          </button>
+        </div>
+      </div>
+
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+
+      <div class="m-1 tab-pane fade show active" id="telemetry" role="tabpanel" aria-labelledby="telemetry-tab">
+        <div class="row">
+          <div class="col-sm-12">
+
+            <div class="card bg-light mb-10">
+              <div class="card-header">
+
+                <div class="text-center"  style="display: inline-block;">
+                  <h5 class="card-title" style="display: inline-block;">
+                    <button type="button" class="btn">
+                      <span id="ABS-wrapper-value" class="badge badge-success-DEL badge-danger settings">ABS</span>
+                    </button>
+                  </h5>
+                  <h5 class="card-title" style="display: inline-block;">
+                    <button type="button" class="btn">
+                      <span id="TCS-wrapper-value" class="badge badge-success-DEL badge-danger settings">TCS</span>
+                    </button>
+                  </h5>
+                  <h5 class="card-title" style="display: inline-block;">
+                    <button type="button" class="btn">
+                      <span id="ELIM-wrapper-value" class="badge badge-success-DEL badge-danger settings">ELIM</span>
+                    </button>
+                  </h5>
+
+                </div>
+
+                <button type="button" class="btn btn-primary">
+                  <span id="gear-wrapper-value" class="badge badge-light">0</span>
+                </button>
+
+                <h5 class="card-title" style="display: inline-block;">
+                  <div id="speed-wrapper-value"> 0.00 </div>
+                </h5>
+
+              </div>
+
+              <div class="card-body">
+                <!-- <p class="card-text"> <hr/> </p> -->
+                <p class="card-text text-center">
+                  <!-- <div id="rpm-wrapper-value">{{rpm}}</div> -->
+                  <div id="rpm-wrapper">
+                    <div id="rpm-wrapper-value">{{rpm}}</div>
+                    <div id="rpm-wrapper-bar-value" style="width: 0%;"></div>
+                  </div>
+                </p>
+
+                <div class="row">
+
+                  <!-- <div class="col-sm-3">
+                    <canvas id="my-canvas-0"></canvas>
+                  </div> -->
+                  <div class="col-sm-9-DEL col-sm-12">
+                    <table id="time-table" style="width: 100%;">
+                      <thead>
+                        <tr>
+                          <th>Lap</th> <th>Driver</th> <th>Car</th> <th>Time</th> <th>Diff.</th> <th>Avg speed</th>
+                        </tr>
+                      </thead>
+                      <tbody id="time-table-body" style="height: 300px; overflow-y: scroll;">
+                        
+                      </tbody>
+                    </table>            
+                  </div>
+                </div> 
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="m-1 tab-pane fade" id="lapmap" role="tabpanel" aria-labelledby="lapmap-tab">
+        <div class="row">
+          <div class="col-sm-12">
+            <canvas id="my-canvas-0"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="m-1 tab-pane fade" id="chat" role="tabpanel" aria-labelledby="chat-tab">
+        <div class="row">
+          <div class="col-sm-12 pt-5">
+
+            <div id="chat-body-wrapper">
+
+              <!-- <div class="chat-msg-wrapper chat-msg-wrapper-own">
+                <div class="chat-msg-head">
+                  <span class="chat-msg-date">00:00:00</span>
+                  <a class="chat-msg-nick" data-nick-name="@nickname" onclick="prependNickName( '@nickname' )">@nickname</a> 
+                </div>
+                <div class="chat-msg-body">
+                  @nickname Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+                </div>
+                <div class="chat-msg-body chat-msg-body-info">
+                  <span class="gray">Track</span>: <span class="blue">uk_silverstone_gp</span>, <span class="gray">Car</span>: <span class="blue">ferrari_f388_gt3</span>
+                </div>
+              </div> -->
+
+            </div>
+
+            <div id="chat-footer-wrapper">
+              <div class="input-group mb-2 mr-sm-2">
+                <input type="text" class="form-control" id="msg-input" placeholder="Message ...">
+                <div class="input-group-btn">
+                  <button class="btn btn-primary" id="send-msg-btn">Send</button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="m-3 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+        <div class="row">
+          <div class="col-sm-12">
+
+            <div>
+              <div class="form-group row">
+                <label class="col-sm-2 col-form-label">PS4 IP Address</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="settings-ps4-host" placeholder="192.168.0.233">
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-sm-2 col-form-label">PS4 Port</label>
+                <div class="col-sm-10">
+                  <input type="text" class="form-control" id="settings-ps4-port" placeholder="default: ( 9996 )" value="9996">
+                </div>
+              </div>
+
+              <div class="text-center">
+                <button class="btn btn-primary" id="settings-save-btn">Save</button>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+    TABs.telemetry = $('#telemetry-tab');
+    TABs.lapmap = $('#lapmap-tab');
+    TABs.chat = $('#chat-tab');
+    TABs.settings = $('#settings-tab');
+    </script>
+
+  </body>
+</html>
+
+<script>
+
+let ACGearUP = null;
+const sock = new ( require('./common/Sock') )();
+const chat_body = $('#chat-body-wrapper');
+
+sock.on('connect', ()=>{
+  // console.log(' sock.on(connect) => ...');
+  sock.emit('get-all-msgs', {});
+
+});
+
+async function addMsg( data_t ){
+
+  console.log( {data_t} );
+  // console.log('sock.on("msg")');
+
+  try{
+    let carName = (''+data_t.carName).trim();
+    let trackName = (''+data_t.trackName).trim();
+    let trackConfig = (''+data_t.trackConfig).trim();
+    let driverName = '@'+(''+data_t.driverName).trim().replace(/@/g, '');
+    let date = (''+data_t.date).trim();
+
+    let msg = 
+      (''+data_t.msg)
+      // .decodeURIComponent()
+      // .replace(/</gi,'&lt;')
+      // .replace(/>/gi,'&gt;')
+      .replace( meta.driverName, `<span class="red">${ meta.driverName }</span>` )
+      // .substr(0,1024);
+
+    let new_msg = `
+      <div class="chat-msg-wrapper chat-msg-wrapper-${ meta.driverName == driverName ? 'own' : 'not-own' }">
+        <div class="chat-msg-head">
+          <span class="chat-msg-date">${ date }</span>
+          <a class="chat-msg-nick" onclick="prependNickName( '${ driverName }' )">${ driverName }</a> 
+        </div>
+        <div class="chat-msg-body">
+          ${ msg }
+        </div>
+        <div class="chat-msg-body chat-msg-body-info">
+          <span class="gray">Track</span>: <span class="blue">${ trackName }</span>,
+          <span class="gray">Car</span>: <span class="blue">${ carName }</span>,
+          <span class="gray">Config</span>: <span class="blue">${ trackConfig }</span>,
+        </div>
+      </div>
+    `;
+
+    // console.log( new_msg );
+    console.log( ' Append msg: >>> ' );
+    chat_body.append( new_msg );
+    $( chat_body ).animate({ scrollTop: $( chat_body ).prop("scrollHeight")}, 450);
+
+  }catch( e ){
+    console.log( e );
+  }
+
+}
+
+sock.on('msg', addMsg );
+
+sock.on('get-all-msgs', (data_t)=>{
+  document.getElementById('chat-body-wrapper').innerHTML = '';
+
+  for( let msg of data_t ){
+    addMsg( msg );
+  }
+
+});
+
+function prependNickName( nick ){
+  $('#msg-input').val( '@'+(''+nick).replace(/@/g, '')+', '+$('#msg-input').val() );
+}
+
+// chat_body.HTML('');
+
+$('#send-msg-btn').on( 'click', ()=>{
+  let msg = $('#msg-input').val().trim();
+
+  if( msg.length == 0 ){
+    return;
+  }
+
+  $('#msg-input').val('');
+
+  sock.emit('msg', {
+    ...meta,
+    msg,
+  });
+
+});
+
+
+$('#settings-save-btn').on('click', ()=>{
+  const settings = JSON.parse( localStorage.getItem('settings') );
+  settings.ps4.host = $('#settings-ps4-host').val().trim();
+  settings.ps4.port = $('#settings-ps4-port').val().trim();
+
+  localStorage.setItem('settings', JSON.stringify(settings) );
+  TABs.telemetry.trigger('click');
+  Init();
+});
+
+$('#clear-collected-data-btn').on('click', ()=>{
+  coords = [];
+  laps = [];
+  document.getElementById('chat-body-wrapper').innerHTML = '';
+  ACGearUP.eventEmitter.emit('lap');
+});
+
+$('#reset-connection-btn').on('click', ()=>{
+  Init();
+});
+
+async function Init(){
+
+  if( !localStorage.getItem('settings') ){
+    localStorage.setItem('settings', JSON.stringify({
+      driverName: 'n/a',
+      chat: {
+        sound: {
+          onP2PMessage: true,
+        },
+      },
+      ps4: {
+        host: '', port: 9996,
+      },
+    }));
+  }
+
+  const settings = JSON.parse( localStorage.getItem('settings') );
+
+  $('#settings-ps4-host').val( settings.ps4.host );
+  $('#settings-ps4-port').val( settings.ps4.port );
+
+  meta.driverName = settings.driverName;
+
+  // const ACGearUP = new (require('./ACGearUP'))( /*'192.168.0.180'*/ );
+  ACGearUP = new (require('./ACGearUP'))( settings.ps4.host, settings.ps4.port );
+
+  ACGearUP.on('meta', (meta_t)=>{
+
+    settings.driverName = meta_t.driverName;
+    localStorage.setItem('settings', JSON.stringify( settings ));
+
+    meta.carName = meta_t.carName; 
+    meta.driverName = meta_t.driverName; 
+    meta.trackName = meta_t.trackName; 
+    meta.trackConfig = meta_t.trackConfig; 
+  });
+
+  ACGearUP.on('titleChanged', (title)=>{
+    document.title = 'ACGearUP: '+title;
+  });
+
+  let rpm_value = document.getElementById('rpm-wrapper-value');
+  let rpm_bar_value = document.getElementById('rpm-wrapper-bar-value');
+  let speed_value = document.getElementById('speed-wrapper-value');
+  let gear_value = document.getElementById('gear-wrapper-value');
+
+  let isEngineLimiterOn = false;
+
+  ACGearUP.on('rpm', (rpm)=>{
+    let perc = ((rpm.curr / rpm.max) * 100 );
+    rpm_bar_value.style.width = perc+'%';
+    rpm_bar_value.style.backgroundColor = 'rgba('+( 255 * ( perc /100 ) )+', '+( isEngineLimiterOn ? 0 : 255 )+', 0, 1)';
+    rpm_value.textContent = (+rpm.curr).toFixed(0)+' / rpm';
+  });
+
+  ACGearUP.on('speed', (speed)=>{ speed_value.textContent = (+speed.curr).toFixed(2); });
+  ACGearUP.on('gear', (gear)=>{ gear_value.textContent = gear; });
+
+  ACGearUP.on('coords', (data_t)=>{
+
+    // return;
+    // document.getElementById('x').textContent = ( (+coords_t.x.min).toFixed(1) )+' <=> '+( (+coords_t.x.max).toFixed(1) );
+    // document.getElementById('y').textContent = ( (+coords_t.y.min).toFixed(1) )+' <=> '+( (+coords_t.y.max).toFixed(1) );
+    // document.getElementById('z').textContent = ( (+coords_t.z.min).toFixed(1) )+' <=> '+( (+coords_t.z.max).toFixed(1) );
+
+    let speed_tracker = data_t.speed_tracker;
+    let coords_t = data_t.coords;
+
+    coords.push({x: (coords_t.x.curr/10 * 1), y: (coords_t.y.curr/10 * 1), speed_tracker });
+
+    // @24 UPD/sec
+    // monza: +- 4000 coords, += 5.793 kilometres
+
+    if( coords.length >= 20000 )
+      coords.shift();
+
+  });
+
+  const table = document.getElementById('time-table');
+  const table_body = document.getElementById('time-table-body');
+
+  ACGearUP.on('lap', (RTLap)=>{
+
+    if( !RTLap ) {
+      table_body.innerHTML = '';
+      return;
+    };
+
+    if( (+RTLap.time_sec) == 0 ) return;
+
+    laps.push( RTLap );
+
+    let fastest_lap = 100000000;
+    let fastest_index = 0;
+
+    // console.log({RTLap});
+
+    for( let i=0; i<laps.length; i++ ){
+      if( (+laps[ i ].time_sec) < fastest_lap ){
+        fastest_index = i;
+        fastest_lap = (+laps[ i ].time_sec)
+      }
+    };
+
+    table_body.innerHTML = '';
+
+    for( let i=0; i<laps.length; i++ ){
+
+      laps[ i ].time_diff = laps[ fastest_index ].time_sec - (+laps[ i ].time_sec);
+
+      table_body.innerHTML += `
+      <tr>
+        <td> ${ laps[ i ].lap } </td>
+        <td> ${ laps[ i ].driverName } </td>
+        <td> ${ laps[ i ].carIdentifierNumber } </td>
+        <td> ${ laps[ i ].time_formated } </td>
+        <td class="${ laps[ i ].time_diff < 0 ? 'text-danger' : 'text-success' }">
+          ${ (laps[ i ].time_diff > 0 ? '-'+(Math.abs(laps[ i ].time_diff).toFixed(3)) : '+'+(Math.abs(laps[ i ].time_diff).toFixed(3)) ) } sec. 
+        </td>
+        <td> ${ laps[ i ].avg_speed } km/h </td>
+      </tr>`;
+    };
+
+  });
+
+  let settings_elems = {
+    ABS: $('#ABS-wrapper-value'),
+    TCS: $('#TCS-wrapper-value'),
+    ELIM: $('#ELIM-wrapper-value'),
+  };
+
+  ACGearUP.on('params', (params)=>{ 
+
+    // return;
+    isEngineLimiterOn = (+params.isEngineLimiterOn);
+
+    if( params.isAbsEnabled ){
+      settings_elems.ABS.removeClass('badge-danger').addClass('badge-success');
+    }else{
+      settings_elems.ABS.removeClass('badge-success').addClass('badge-danger');
+    }
+
+    if( params.isTcEnabled ){
+      settings_elems.TCS.removeClass('badge-danger').addClass('badge-success');
+    }else{
+      settings_elems.TCS.removeClass('badge-success').addClass('badge-danger');
+    }
+
+    if( params.isEngineLimiterOn ){
+      settings_elems.ELIM.removeClass('badge-danger').addClass('badge-success');
+    }else{
+      settings_elems.ELIM.removeClass('badge-success').addClass('badge-danger');
+    }
+
+    // params.isAbsEnabled;
+    // params.isAbsInAction;
+    // params.isTcInAction;
+    // params.isTcEnabled;
+    // params.isInPit;
+    // params.isEngineLimiterOn;
+  });
+
+}
+
+Init();
+
+</script>
