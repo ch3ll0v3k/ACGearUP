@@ -4,6 +4,11 @@
 // console.logTime( false );
 // console.logColor( false );
 
+// https://github.com/ch3ll0v3k/ACGearUP/releases/download/1.1.2/ACGearUP-linux-x64.v1.1.2.tar.xz
+// https://github.com/ch3ll0v3k/ACGearUP/releases/download/1.1.2/ACGearUP-win32-x64.v1.1.2.zip
+// 
+
+
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true;
 process.env.NODE_ENV = ( process.env.NODE_ENV || 'prod' );
 process.env.IS_MAC = ((''+process.platform).toLowerCase().trim() === 'darwin');
