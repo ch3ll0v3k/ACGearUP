@@ -18,3 +18,5 @@ Available for Windows (x64) && Linux (x64)
 
 ##### Settings
 ![settings](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/settings.png)
+
+
