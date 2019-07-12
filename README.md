@@ -6,7 +6,8 @@ Available for Windows (x64) && Linux (x64)
 ##### Telemetry
 ![telemetry](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/telemetry.png)
 
-##### Telemetry Lotus-98t-Spa
+![telemetry](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/Spa.Lotus-98t.no-TCS.00:01:57.474.png)
+
 ![telemetry](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/Lotus-98t-Spa.png)
 
 ##### Lap
