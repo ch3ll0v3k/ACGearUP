@@ -162,16 +162,18 @@ module.exports = class{
       console.log(' trackName[50]: ['+trackName+']');
       console.log(' trackConfig[50]: ['+trackConfig+']');
 
-      this.eventEmitter.emit( 'titleChanged', carName+' @'+trackName+', '+driverName );
-      this.eventEmitter.emit( 'meta', {carName, trackName, driverName, trackConfig} );
+      this.eventEmitter.emit( 'meta', {
+        carName, driverName, identifier,version, trackName, trackConfig,
+        title: carName+' @'+trackName+', '+driverName
+      });
 
       return {
-        carName: ' '+carName, // .toString('ascii'),
-        driverName: ' '+driverName, // .toString('utf-8'),
-        identifier: ' '+identifier, // , // .toString('utf-8'),
-        version: ' '+version, // , // .toString('utf-8'),
-        trackName: ' '+trackName, // .toString('utf-8'),
-        trackConfig: ' '+trackConfig, // .toString('utf-8'),
+        carName, // : ' '+carName, // .toString('ascii'),
+        driverName, // : ' '+driverName, // .toString('utf-8'),
+        identifier, // : ' '+identifier, // , // .toString('utf-8'),
+        version, // : ' '+version, // , // .toString('utf-8'),
+        trackName, // : ' '+trackName, // .toString('utf-8'),
+        trackConfig, // : ' '+trackConfig, // .toString('utf-8'),
       };
 
     }catch( e ){
@@ -454,16 +456,39 @@ module.exports = class{
       if( this.car.rpm.curr > this.car.rpm.max ) this.car.rpm.max = this.car.rpm.curr;
       if( this.car.speed.curr > this.car.speed.max ) this.car.speed.max = this.car.speed.curr;
 
+      let speed_tracker = ( this.speed_tracker > (+data.speed_Kmh) ) ? false : true;
+      this.speed_tracker = (+data.speed_Kmh);
+
+
+      this.eventEmitter.emit('telemetry', {
+        rpm: {...this.car.rpm},
+        speed: {...this.car.speed},
+        gear: data.gear,
+        coords: {
+          coords: this.car.coords,
+          speed_tracker,
+        },
+        params: {
+          isAbsEnabled: data.isAbsEnabled,
+          isAbsInAction: data.isAbsInAction,
+          isTcInAction: data.isTcInAction,
+          isTcEnabled: data.isTcEnabled,
+          isInPit: data.isInPit,
+          isEngineLimiterOn: data.isEngineLimiterOn,
+        },
+        raw_all_telemetry: data,
+      });
+
+      return data;
+
       this.eventEmitter.emit('rpm', {...this.car.rpm})
       this.eventEmitter.emit('speed', {...this.car.speed})
       this.eventEmitter.emit('gear', data.gear);
 
       this.eventEmitter.emit('coords', {
         coords: this.car.coords,
-        speed_tracker: ( this.speed_tracker > (+data.speed_Kmh) ) ? false : true,
+        speed_tracker,
       });
-
-      this.speed_tracker = (+data.speed_Kmh);
 
       this.eventEmitter.emit('params', {
         isAbsEnabled: data.isAbsEnabled,

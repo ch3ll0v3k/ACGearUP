@@ -15,8 +15,12 @@
     "bin-protocol": "3.1.1",
     "electron": "5.0.6",
     "generate-safe-id": "^1.0.2",
+    "highcharts": "^7.1.2",
+    "highcharts-3d": "^0.1.7",
     "jquery": "3.1.1",
     "mii-logger.js": "^1.1.77",
+    "plotly.js-dist": "^1.48.3",
+    "plotly.js-gl3d-dist": "^1.48.3",
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0"
   }

@@ -1,4 +1,9 @@
 <script>
+const logger = require('mii-logger.js');
+console.logTime( false );
+console.logColor( false );
+
+const RAW_TELEMETRY_SAMPLES = `${__dirname}/raw-telemetry-samples`;
   
 const { dialog } = require('electron').remote;
 // console.log(dialog.showOpenDialog({
@@ -27,9 +32,11 @@ const { dialog } = require('electron').remote;
     <script type="text/javascript">
       window.$ = jQuery = require('jquery');
     </script>
-    <script src="./js/popper.min.js"></script>
-    <script src="./js/MiiCanvas.js"></script>
+    <script sync src="./js/popper.min.js"></script>
+    <script sync src="./js/MiiCanvas.js"></script>
     <script sync src="./js/bootstrap.min.js"></script>
+    <!-- <script sync src="./js/highcharts.js"></script> -->
+    <!-- <script sync src="./js/highcharts-3d.js"></script> -->
 
   </head>
   <body>
@@ -43,16 +50,18 @@ const { dialog } = require('electron').remote;
       settings: $('#settings-tab'),
     };
 
-
     let meta = {
       carName: 'n/a',
-      trackName: 'n/a',
       driverName: 'n/a',
+      identifier: 'n/a',
+      version: 'n/a',
+      trackName: 'n/a',
       trackConfig: 'n/a',
     };
 
     let coords = [];
     let laps = [];
+    let telemetry_array = [];
 
     const W = 640;
     const H = 640;
@@ -62,7 +71,7 @@ const { dialog } = require('electron').remote;
 
     onLoad(function() {
 
-      // return;
+      return;
 
       let MiiCan = new MiiCanvas({canvasId:'my-canvas-0', W, H});
       MiiCan.setBg( '#444' );
@@ -207,10 +216,244 @@ const { dialog } = require('electron').remote;
         </div>
       </div>
 
-      <div class="m-1 tab-pane fade" id="lapmap" role="tabpanel" aria-labelledby="lapmap-tab">
+      <!-- <div class="m-1 tab-pane fade" id="lapmap" role="tabpanel" aria-labelledby="lapmap-tab">
         <div class="row">
           <div class="col-sm-12">
             <canvas id="my-canvas-0"></canvas>
+          </div>
+        </div>
+      </div> -->
+
+      <div class="m-1 tab-pane fade" id="lapmap" role="tabpanel" aria-labelledby="lapmap-tab">
+        <div class="row">
+          <div class="col-sm-12">
+
+            <style type="text/css">
+              #container {
+                box-shadow: 0 0 4px #00F;
+                height: 550px; 
+                min-width: 310px; 
+                /* max-width: 800px; */
+                margin: 0 auto;
+              }
+            </style>
+
+            <!-- <script src="https://code.highcharts.com/highcharts.js"></script> -->
+            <!-- <script src="https://code.highcharts.com/highcharts-3d.js"></script> -->
+
+
+            <div id="container"> </div>
+
+            <div id="graph" style="box-shadow: 0 0 4px #F00;"></div>
+
+            <script type="text/javascript">
+
+              // const Highcharts3D = require('highcharts-3d');
+              // require('highcharts/modules/exporting')( Highcharts3D );
+              const Highcharts = require('highcharts');
+              const Highcharts3D = require('highcharts/highcharts-3d');
+
+              Highcharts3D( Highcharts );
+              let chart = null;
+
+              // require('highcharts/modules/exporting')( Highcharts );
+
+              // let all_data = console.jsonFromFile( './raw-telemetry-samples/lap.1563024796956.spa.ks_ferrari_488_gt3.ch3lll0v3k.json');
+              // let all_data = console.jsonFromFile( './raw-telemetry-samples/lap.1563024334562.ks_brands_hatch.ks_toyota_supra_mkiv_drift.ch3lll0v3k.json');
+
+              let plot_data = [];
+
+              let min_x = 100000000;
+              let max_x = 0;
+              let last_x = 0;
+
+              let min_y = 100000000;
+              let max_y = 0;
+              let last_y = 0;
+
+              let min_z = 100000000;
+              let max_z = 0;
+              let last_z = 0;
+
+              let coord_scp = 1.25;
+
+              function clearChart(){ chart.series[0].setData([], false); };
+              function addToChart( dataArray ){
+
+                return;
+
+                // console.log( addToChart );
+
+                if(
+                  ( dataArray[0] + coord_scp > last_x && dataArray[0] - coord_scp < last_x )
+                  &&
+                  ( dataArray[1] + coord_scp > last_y && dataArray[1] - coord_scp < last_y )
+                  &&
+                  ( dataArray[2] + coord_scp > last_z && dataArray[2] - coord_scp < last_z )
+                ) {
+
+                  // last_x = dataArray[0];
+                  // last_y = dataArray[1];
+                  // last_z = dataArray[2];
+                  return;
+                }
+
+                last_x = dataArray[0];
+                last_y = dataArray[1];
+                last_z = dataArray[2];
+
+                chart.series[0].addPoint( dataArray );
+
+              };
+
+              for( let i in [] ){
+              // for( let i in all_data.map_coords ){
+
+                all_data.map_coords[ i ].x /= 10000;
+                all_data.map_coords[ i ].y /= 10000;
+                all_data.map_coords[ i ].z /= 1000;
+
+                if(
+                  ( all_data.map_coords[ i ].x + coord_scp > last_x && all_data.map_coords[ i ].x - coord_scp < last_x )
+                  &&
+                  ( all_data.map_coords[ i ].y + coord_scp > last_y && all_data.map_coords[ i ].y - coord_scp < last_y )
+                  &&
+                  ( all_data.map_coords[ i ].z + coord_scp > last_z && all_data.map_coords[ i ].z - coord_scp < last_z )
+                ) {
+
+                  last_x = all_data.map_coords[ i ].x;
+                  last_y = all_data.map_coords[ i ].y;
+                  last_z = all_data.map_coords[ i ].z;
+
+                  continue;
+                }
+
+                last_x = all_data.map_coords[ i ].x;
+                last_y = all_data.map_coords[ i ].y;
+                last_z = all_data.map_coords[ i ].z;
+
+                min_x = last_x < min_x ? last_x : min_x;
+                min_y = last_y < min_y ? last_y : min_y;
+                min_z = last_z < min_z ? last_z : min_z;
+
+                max_x = last_x > max_x ? last_x : max_x;
+                max_y = last_y > max_y ? last_y : max_y;
+                max_z = last_z > max_z ? last_z : max_z;
+
+
+                plot_data.push([
+                  all_data.map_coords[ i ].x,
+                  all_data.map_coords[ i ].y,
+                  all_data.map_coords[ i ].z,
+                ]);
+              }
+
+
+              window.addEventListener('load', ()=>{
+
+                chart = Highcharts.chart('container', {
+                    chart: {
+                      type: 'scatter3d',
+                      // type: 'scatter',
+                      options3d: {
+                        enabled: true,
+                        alpha: 20,
+                        beta: 30,
+                        depth: 200,
+                        viewDistance: 10,
+                        frame: {
+                          bottom: {
+                            size: 1,
+                            color: 'rgba(0,0,0,0.05)'
+                          }
+                        }
+                      }
+                    },
+                    plotOptions: {
+                      scatter: {
+                        width: 1,
+                        height: 1,
+                        depth: 1,
+                        marker: {
+                          enabled: true
+                        }
+                      }
+                    },
+                    title: {
+                        text: 'a 3D Scatter Chart'
+                    },
+                    subtitle: {
+                        text: 'using x y z coordinates'
+                    },
+                    yAxis: {
+                      // min: min_y,
+                      // max: max_y,
+                    },
+                    xAxis: {
+                      // min: min_x,
+                      // max: max_x,
+                      gridLineWidth: 1
+                    },
+                    zAxis: {
+                      // min: min_z,
+                      // max: max_z,
+                      showFirstLabel: false
+                    },
+                    series: [{
+                      lineWidth: 1,
+                      data: plot_data, 
+                      /*[
+                          // [X, Y, Z]
+                        [1, 1, 1],
+                        [1, 1, 2],
+                        [1, 1, 5],
+                        [2, 3, 2],
+                        [2, 6, 4],
+                        [20, 20, 20],
+                        [4, 2, 8],
+                        [7, 1, 3],
+                        [7, 1, 5],
+                        [8, 1, 5]
+                      ]*/
+                    }]
+                });              
+
+
+                // Add mouse events for rotation
+                $(chart.container).bind('mousedown.hc touchstart.hc', function (eStart) {
+                  eStart = chart.pointer.normalize(eStart);
+
+                  var posX = eStart.pageX,
+                      posY = eStart.pageY,
+                      alpha = chart.options.chart.options3d.alpha,
+                      beta = chart.options.chart.options3d.beta,
+                      newAlpha,
+                      newBeta,
+                      sensitivity = 5; // lower is more sensitive
+
+                  $(document).bind({
+                      'mousemove.hc touchdrag.hc': function (e) {
+                          // Run beta
+                        newBeta = beta + (posX - e.pageX) / sensitivity;
+                        chart.options.chart.options3d.beta = newBeta;
+                        // Run alpha
+                        newAlpha = alpha + (e.pageY - posY) / sensitivity;
+                        chart.options.chart.options3d.alpha = newAlpha;
+
+                        chart.redraw(false);
+
+                      },
+                      'mouseup touchend': function () {
+                        $(document).unbind('.hc');
+                      }
+                  });
+                });
+
+              });
+
+            </script>
+
+
           </div>
         </div>
       </div>
@@ -292,6 +535,73 @@ const { dialog } = require('electron').remote;
 
 <script>
 
+// let Plotly = require('plotly.js-dist');
+
+// WebGL
+let Plotly = require('plotly.js-gl3d-dist');
+
+let plot_delay = 1000;
+let last_plot = Date.now();
+
+async function plot( _coords ){
+
+  if( (last_plot + plot_delay) > Date.now() ) return;
+  last_plot = Date.now();
+
+  function unpackCoords(rows, key) { return rows.map(function(row) { return row[key]; }); }
+  function unpackColor(rows) { return rows.map(function(row) { return row.speed_tracker ? '#0F7' : '#F70'; }); }
+  let x = unpackCoords(_coords , 'x');
+  let y = unpackCoords(_coords , 'y');
+  let z = unpackCoords(_coords , 'z'); 
+  let color = unpackColor(_coords ); // , 'speed_tracker');
+
+  Plotly.plot('graph', [{
+    type: 'scatter3d',
+    mode: 'lines',
+    x,
+    y,
+    z,
+    opacity: 1,
+    line: {
+      color,
+      width: 6,
+      reversescale: true
+    }
+  }], {
+    height: 640
+  });
+
+}
+
+// Plotly.d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/3d-line1.csv', function(err, rows){
+//   // function unpack(rows, key) {
+//   //   return rows.map(function(row) { return row[key]; });
+//   // }
+//   // var x = unpack(rows , 'x');
+//   // var y = unpack(rows , 'y');
+//   // var z = unpack(rows , 'z'); 
+//   // var c = unpack(rows , 'color');
+//   let x = [170, -65, -80, 30];
+//   let y = [100, -100, 30, -70];
+//   let z = [250, 250, -80, -56];
+//   let c = ['#F00', '#0F0', '#00F', '#F0F'];
+//   Plotly.plot('graph', [{
+//     type: 'scatter3d',
+//     mode: 'lines',
+//     x: x,
+//     y: y,
+//     z: z,
+//     opacity: 1,
+//     line: {
+//       width: 6,
+//       color: c,
+//       reversescale: false
+//     }
+//   }], {
+//     height: 640
+//   });
+// });
+
 let ACGearUP = null;
 const sock = new ( require('./common/Sock') )();
 const chat_body = $('#chat-body-wrapper');
@@ -304,7 +614,7 @@ sock.on('connect', ()=>{
 
 async function addMsg( data_t ){
 
-  console.log( {data_t} );
+  // console.log( {data_t} );
   // console.log('sock.on("msg")');
 
   try{
@@ -432,18 +742,13 @@ async function Init(){
   ACGearUP = new (require('./ACGearUP'))( settings.ps4.host, settings.ps4.port );
 
   ACGearUP.on('meta', (meta_t)=>{
-
     settings.driverName = meta_t.driverName;
     localStorage.setItem('settings', JSON.stringify( settings ));
-
     meta.carName = meta_t.carName; 
     meta.driverName = meta_t.driverName; 
     meta.trackName = meta_t.trackName; 
     meta.trackConfig = meta_t.trackConfig; 
-  });
-
-  ACGearUP.on('titleChanged', (title)=>{
-    document.title = 'ACGearUP: '+title;
+    document.title = 'ACGearUP: '+meta_t.title;
   });
 
   let rpm_value = document.getElementById('rpm-wrapper-value');
@@ -453,33 +758,35 @@ async function Init(){
 
   let isEngineLimiterOn = false;
 
-  ACGearUP.on('rpm', (rpm)=>{
-    let perc = ((rpm.curr / rpm.max) * 100 );
+
+  ACGearUP.on('telemetry', (telemetry)=>{
+
+    // RPM
+    let perc = ((telemetry.rpm.curr / telemetry.rpm.max) * 100 );
     rpm_bar_value.style.width = perc+'%';
     rpm_bar_value.style.backgroundColor = 'rgba('+( 255 * ( perc /100 ) )+', '+( isEngineLimiterOn ? 0 : 255 )+', 0, 1)';
-    rpm_value.textContent = (+rpm.curr).toFixed(0)+' / rpm';
-  });
+    rpm_value.textContent = (+telemetry.rpm.curr).toFixed(0)+' / rpm';
 
-  ACGearUP.on('speed', (speed)=>{ speed_value.textContent = (+speed.curr).toFixed(2); });
-  ACGearUP.on('gear', (gear)=>{ gear_value.textContent = gear; });
+    // SPEED
+    speed_value.textContent = (+telemetry.speed.curr).toFixed(2);
+    // GEAR
+    gear_value.textContent = telemetry.gear;
 
-  ACGearUP.on('coords', (data_t)=>{
+    // TRACK-MAP
 
-    // return;
-    // document.getElementById('x').textContent = ( (+coords_t.x.min).toFixed(1) )+' <=> '+( (+coords_t.x.max).toFixed(1) );
-    // document.getElementById('y').textContent = ( (+coords_t.y.min).toFixed(1) )+' <=> '+( (+coords_t.y.max).toFixed(1) );
-    // document.getElementById('z').textContent = ( (+coords_t.z.min).toFixed(1) )+' <=> '+( (+coords_t.z.max).toFixed(1) );
+    let speed_tracker = telemetry.coords.speed_tracker;
+    let coords_t = telemetry.coords.coords;
 
-    let speed_tracker = data_t.speed_tracker;
-    let coords_t = data_t.coords;
-
-    coords.push({x: (coords_t.x.curr/10 * 1), y: (coords_t.y.curr/10 * 1), speed_tracker });
+    // coords.push({x: ((+coords_t.x.curr) *10000), y: ((+coords_t.y.curr) *10000), z: ((+coords_t.z.curr) *100), speed_tracker });
+    coords.push({x: (+coords_t.x.curr), y: (+coords_t.y.curr), z: (+coords_t.z.curr), speed_tracker });
+    telemetry_array.push( telemetry );
+    // plot( coords );
+   
+    addToChart([(+coords_t.x.curr), (+coords_t.y.curr), (+coords_t.z.curr)]);
 
     // @24 UPD/sec
     // monza: +- 4000 coords, += 5.793 kilometres
-
-    if( coords.length >= 20000 )
-      coords.shift();
+    // if( coords.length >= 20000 ) coords.shift();
 
   });
 
@@ -527,6 +834,18 @@ async function Init(){
         <td> ${ laps[ i ].avg_speed } km/h </td>
       </tr>`;
     };
+
+    let filename = `${RAW_TELEMETRY_SAMPLES}/{TYPE}.${ Date.now() }.${ meta.trackName }.${ meta.carName }.${ meta.driverName }.json`;
+    let data = JSON.stringify({
+      laps,
+      map_coords: coords,
+    });
+
+    console.jsonToFile( filename.replace('{TYPE}', 'lap'), data );
+    console.jsonToFile( filename.replace('{TYPE}', 'telemetry'), telemetry_array );
+    // plot( coords );
+    coords = [];
+    clearChart();
 
   });
 

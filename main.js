@@ -6,7 +6,6 @@
 
 // https://github.com/ch3ll0v3k/ACGearUP/releases/download/1.1.2/ACGearUP-linux-x64.v1.1.2.tar.xz
 // https://github.com/ch3ll0v3k/ACGearUP/releases/download/1.1.2/ACGearUP-win32-x64.v1.1.2.zip
-// 
 
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = true;
@@ -17,6 +16,7 @@ process.env.IS_WIN = ((''+process.platform).toLowerCase().trim() === 'win32');
 process.env.ICON = __dirname+'/img/icon.png';
 
 const Notif = require('./common/electron/Notif');
+const fs = require('fs');
 
 const electron = require('electron');
 const { app, BrowserWindow, Menu, Tray, Notification, dialog } = electron;
@@ -83,7 +83,7 @@ function createWindow () {
   win.loadFile('index.html');
 
   // Open the DevTools.
-  // win.webContents.openDevTools();
+  win.webContents.openDevTools();
 
   // Emitted when the window is closed.
   win.on('closed', () => {
