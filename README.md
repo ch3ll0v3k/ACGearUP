@@ -53,19 +53,20 @@ Windows users:
 Screenshots
 
 ###### Telemetry
-![telemetry](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/telemetry.png =720x384)
 
-![telemetry](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/Spa.Lotus-98t.no-TCS.00:01:57.474.png =720x384)
+<img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/telemetry.png" width="720px" height="384px"/>
 
-![telemetry](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/Lotus-98t-Spa.png =720x384)
+<img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/Spa.Lotus-98t.no-TCS.00:01:57.474.png" width="720px" height="384px"/>
+
+<img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/Lotus-98t-Spa.png" width="720px" height="384px"/>
 
 ###### Lap
-![lap-map](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/lap-map.png =720x384)
+<img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/lap-map.png" width="720px" height="384px"/>
 
 ###### Chat
-![chat](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/chat.png =720x384)
+<img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/chat.png" width="720px" height="384px"/>
 
 ###### Settings
-![settings](https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/settings.png =720x384)
+<img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/settings.png" width="720px" height="384px"/>
 
 
