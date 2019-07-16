@@ -3,7 +3,9 @@
 ##### Assetto-Corsa PS4 Telemetry and chat: NO INSTALLATION IS REQUIRED
 
 Download ACGearUP lates release https://github.com/ch3ll0v3k/ACGearUP/releases/latest
+
 Join dev-discussion @ https://www.assettocorsa.net/forum/index.php?threads/ac-ps4-acgearup-telemetry-and-public-chat-app-windows-and-linux.59274/
+
 
 ```
 Available for:
