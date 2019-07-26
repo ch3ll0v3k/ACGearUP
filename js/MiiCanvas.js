@@ -2,15 +2,21 @@ class MiiCanvas{
 
     constructor( params ){
 
+        this.name = params.name;
         this.canvasId = params.canvasId;
         this.W = params.W;
         this.H = params.H;
         this.CW = this.W / 2;
         this.CH = this.H / 2;
 
+        this.GH = 10;
+        this.GW = this.GH * 4;
+        this.GClr = '#444';
+
+        this.DPI = window.devicePixelRatio;
         this.canvas = this.getByID( this.canvasId );
-        this.canvas.setAttribute('width', this.W+'px');
-        this.canvas.setAttribute('height', this.H+'px');
+        this.canvas.setAttribute('width', (this.W * this.DPI)+'px');
+        this.canvas.setAttribute('height', (this.H * this.DPI)+'px');
         this.ctx = this.canvas.getContext("2d");
 
         this.offset_x = this.canvas.offsetLeft;
@@ -50,6 +56,8 @@ class MiiCanvas{
     clear(){ 
         this.ctx.clearRect(0, 0, this.W, this.H);
         this.setBackground( this.mainBackground )
+        this.drawGrid();
+        // this.drawText( this.name, 10, 20, '#FFF' );
     }
 
     setBackground( clr ){ this.setBg( clr ); }
@@ -57,6 +65,18 @@ class MiiCanvas{
     setBg( clr ){ 
         this.mainBackground = clr || '#848484'; 
         this.drawRect(0, 0, this.W, this.H, this.mainBackground );
+    }
+
+    drawGrid(){
+
+        for( let wx = 0; wx < this.W; wx += this.GW ){
+            this.drawLine( wx, 0, wx, this.H, this.GClr, 1 );
+        }
+            
+        for( let hy = 0; hy < this.H; hy += this.GH ){
+            this.drawLine( 0, hy, this.W, hy, this.GClr, 1 );
+
+        }
     }
 
     drawDotField( x0, y0, D, clr ){
@@ -230,10 +250,15 @@ class MiiCanvas{
 
 }
 
-function onLoad( cb ) { 
-window.addEventListener('load', function(){
-// console.log(' onLoad: ...');
-cb();
-});
+// function onLoad( cb ) { 
+//   window.addEventListener('load', function(){
+//     // console.log(' onLoad: ...');
+//     cb();
+//   });
+// }
+
+
+if( typeof module !== "undefined" ){
+  module.exports = MiiCanvas;
 }
 

@@ -1,7 +1,10 @@
 <script>
 const logger = require('mii-logger.js');
+const fs = require('fs');
 console.logTime( false );
 console.logColor( false );
+
+const TelChart = new (require('./TelChart').TelChart)({MW: 1000, MH: 800});
 
 const RAW_TELEMETRY_SAMPLES = `${__dirname}/raw-telemetry-samples`;
   
@@ -18,6 +21,14 @@ const { dialog } = require('electron').remote;
 //   message: 'Content of the message box',
 //   detail: 'Extra information of the message',
 // }));
+
+// TODO: add library
+
+function renderPartial( name ){
+  name = name.replace(/[\s_]/g, '-').toLowerCase().trim();
+  document.getElementById( name ).innerHTML 
+    = fs.readFileSync( `./views/partials/${ name }.html` );
+}
 
 </script>
 <!DOCTYPE html>
@@ -69,36 +80,6 @@ const { dialog } = require('electron').remote;
     const CW = W/2;
     const CH = H/2;
 
-    onLoad(function() {
-
-      return;
-
-      let MiiCan = new MiiCanvas({canvasId:'my-canvas-0', W, H});
-      MiiCan.setBg( '#444' );
-
-      MiiCan.setFrameRate( 15 );
-      MiiCan.onFrame(function( frame, mSecPast, secPast ){
-
-        try{
-
-          MiiCan.clear();
-          MiiCan.clearInfoTextIndex();
-
-          // MiiCan.drawLine( 30, 100, 200, 160, '#FF0' );
-          // MiiCan.drawDot( x, y, 2, '#aaa' );
-
-          for( let i in coords ){
-            MiiCan.drawDot( CW+coords[i].x, CH+coords[i].y, 2, ( coords[i].speed_tracker ? '#0F5' : '#F50' ) );
-          }
-          MiiCan.drawDot( CW+coords[ coords.length -1 ].x, CH+coords[ coords.length -1 ].y, 3, '#000' );
-        }catch(e){}
-
-      });
-
-      MiiCan.startAnimation();
-
-    });
-
     </script>
 
     <!-- <div class="p-2" style="height: 38px; box-sizing: border-box;">
@@ -112,7 +93,10 @@ const { dialog } = require('electron').remote;
 
     <ul class="nav nav-tabs" id="myTab" role="tablist">
       <li class="nav-item">
-        <a class="nav-link active" id="telemetry-tab" data-toggle="tab" href="#telemetry" role="tab" aria-controls="telemetry" aria-selected="true">Telemetry</a>
+        <a class="nav-link active" id="dev0-tab" data-toggle="tab" href="#dev0" role="tab" aria-controls="dev0" aria-selected="true">Dev0</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="telemetry-tab" data-toggle="tab" href="#telemetry" role="tab" aria-controls="telemetry" aria-selected="true">Telemetry</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" id="lapmap-tab" data-toggle="tab" href="#lapmap" role="tab" aria-controls="lapmap" aria-selected="false">Lap-Map</a>
@@ -144,390 +128,28 @@ const { dialog } = require('electron').remote;
 
     <div class="tab-content" id="myTabContent">
 
-      <div class="m-1 tab-pane fade show active" id="telemetry" role="tabpanel" aria-labelledby="telemetry-tab">
-        <div class="row">
-          <div class="col-sm-12">
-
-            <div class="card bg-light mb-10">
-              <div class="card-header">
-
-                <div class="text-center"  style="display: inline-block;">
-                  <h5 class="card-title" style="display: inline-block;">
-                    <button type="button" class="btn">
-                      <span id="ABS-wrapper-value" class="badge badge-success-DEL badge-danger settings">ABS</span>
-                    </button>
-                  </h5>
-                  <h5 class="card-title" style="display: inline-block;">
-                    <button type="button" class="btn">
-                      <span id="TCS-wrapper-value" class="badge badge-success-DEL badge-danger settings">TCS</span>
-                    </button>
-                  </h5>
-                  <h5 class="card-title" style="display: inline-block;">
-                    <button type="button" class="btn">
-                      <span id="ELIM-wrapper-value" class="badge badge-success-DEL badge-danger settings">ELIM</span>
-                    </button>
-                  </h5>
-
-                </div>
-
-                <button type="button" class="btn btn-primary">
-                  <span id="gear-wrapper-value" class="badge badge-light">0</span>
-                </button>
-
-                <h5 class="card-title" style="display: inline-block;">
-                  <div id="speed-wrapper-value"> 0.00 </div>
-                </h5>
-
-              </div>
-
-              <div class="card-body">
-                <!-- <p class="card-text"> <hr/> </p> -->
-                <p class="card-text text-center">
-                  <!-- <div id="rpm-wrapper-value">{{rpm}}</div> -->
-                  <div id="rpm-wrapper">
-                    <div id="rpm-wrapper-value">{{rpm}}</div>
-                    <div id="rpm-wrapper-bar-value" style="width: 0%;"></div>
-                  </div>
-                </p>
-
-                <div class="row">
-
-                  <!-- <div class="col-sm-3">
-                    <canvas id="my-canvas-0"></canvas>
-                  </div> -->
-                  <div class="col-sm-9-DEL col-sm-12">
-                    <table id="time-table" style="width: 100%;">
-                      <thead>
-                        <tr>
-                          <th>Lap</th> <th>Driver</th> <th>Car</th> <th>Time</th> <th>Diff.</th> <th>Avg speed</th>
-                        </tr>
-                      </thead>
-                      <tbody id="time-table-body" style="height: 300px; overflow-y: scroll;">
-                        
-                      </tbody>
-                    </table>            
-                  </div>
-                </div> 
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      <!-- <div class="m-1 tab-pane fade" id="lapmap" role="tabpanel" aria-labelledby="lapmap-tab">
-        <div class="row">
-          <div class="col-sm-12">
-            <canvas id="my-canvas-0"></canvas>
-          </div>
-        </div>
-      </div> -->
-
-      <div class="m-1 tab-pane fade" id="lapmap" role="tabpanel" aria-labelledby="lapmap-tab">
-        <div class="row">
-          <div class="col-sm-12">
-
-            <style type="text/css">
-              #container {
-                box-shadow: 0 0 4px #00F;
-                height: 550px; 
-                min-width: 310px; 
-                /* max-width: 800px; */
-                margin: 0 auto;
-              }
-            </style>
-
-            <!-- <script src="https://code.highcharts.com/highcharts.js"></script> -->
-            <!-- <script src="https://code.highcharts.com/highcharts-3d.js"></script> -->
-
-
-            <div id="container"> </div>
-
-            <div id="graph" style="box-shadow: 0 0 4px #F00;"></div>
-
-            <script type="text/javascript">
-
-              // const Highcharts3D = require('highcharts-3d');
-              // require('highcharts/modules/exporting')( Highcharts3D );
-              const Highcharts = require('highcharts');
-              const Highcharts3D = require('highcharts/highcharts-3d');
-
-              Highcharts3D( Highcharts );
-              let chart = null;
-
-              // require('highcharts/modules/exporting')( Highcharts );
-
-              // let all_data = console.jsonFromFile( './raw-telemetry-samples/lap.1563024796956.spa.ks_ferrari_488_gt3.ch3lll0v3k.json');
-              // let all_data = console.jsonFromFile( './raw-telemetry-samples/lap.1563024334562.ks_brands_hatch.ks_toyota_supra_mkiv_drift.ch3lll0v3k.json');
-
-              let plot_data = [];
-
-              let min_x = 100000000;
-              let max_x = 0;
-              let last_x = 0;
-
-              let min_y = 100000000;
-              let max_y = 0;
-              let last_y = 0;
-
-              let min_z = 100000000;
-              let max_z = 0;
-              let last_z = 0;
-
-              let coord_scp = 1.25;
-
-              function clearChart(){ chart.series[0].setData([], false); };
-              function addToChart( dataArray ){
-
-                return;
-
-                // console.log( addToChart );
-
-                if(
-                  ( dataArray[0] + coord_scp > last_x && dataArray[0] - coord_scp < last_x )
-                  &&
-                  ( dataArray[1] + coord_scp > last_y && dataArray[1] - coord_scp < last_y )
-                  &&
-                  ( dataArray[2] + coord_scp > last_z && dataArray[2] - coord_scp < last_z )
-                ) {
-
-                  // last_x = dataArray[0];
-                  // last_y = dataArray[1];
-                  // last_z = dataArray[2];
-                  return;
-                }
-
-                last_x = dataArray[0];
-                last_y = dataArray[1];
-                last_z = dataArray[2];
-
-                chart.series[0].addPoint( dataArray );
-
-              };
-
-              for( let i in [] ){
-              // for( let i in all_data.map_coords ){
-
-                all_data.map_coords[ i ].x /= 10000;
-                all_data.map_coords[ i ].y /= 10000;
-                all_data.map_coords[ i ].z /= 1000;
-
-                if(
-                  ( all_data.map_coords[ i ].x + coord_scp > last_x && all_data.map_coords[ i ].x - coord_scp < last_x )
-                  &&
-                  ( all_data.map_coords[ i ].y + coord_scp > last_y && all_data.map_coords[ i ].y - coord_scp < last_y )
-                  &&
-                  ( all_data.map_coords[ i ].z + coord_scp > last_z && all_data.map_coords[ i ].z - coord_scp < last_z )
-                ) {
-
-                  last_x = all_data.map_coords[ i ].x;
-                  last_y = all_data.map_coords[ i ].y;
-                  last_z = all_data.map_coords[ i ].z;
-
-                  continue;
-                }
-
-                last_x = all_data.map_coords[ i ].x;
-                last_y = all_data.map_coords[ i ].y;
-                last_z = all_data.map_coords[ i ].z;
-
-                min_x = last_x < min_x ? last_x : min_x;
-                min_y = last_y < min_y ? last_y : min_y;
-                min_z = last_z < min_z ? last_z : min_z;
-
-                max_x = last_x > max_x ? last_x : max_x;
-                max_y = last_y > max_y ? last_y : max_y;
-                max_z = last_z > max_z ? last_z : max_z;
-
-
-                plot_data.push([
-                  all_data.map_coords[ i ].x,
-                  all_data.map_coords[ i ].y,
-                  all_data.map_coords[ i ].z,
-                ]);
-              }
-
-
-              window.addEventListener('load', ()=>{
-
-                chart = Highcharts.chart('container', {
-                    chart: {
-                      type: 'scatter3d',
-                      // type: 'scatter',
-                      options3d: {
-                        enabled: true,
-                        alpha: 20,
-                        beta: 30,
-                        depth: 200,
-                        viewDistance: 10,
-                        frame: {
-                          bottom: {
-                            size: 1,
-                            color: 'rgba(0,0,0,0.05)'
-                          }
-                        }
-                      }
-                    },
-                    plotOptions: {
-                      scatter: {
-                        width: 1,
-                        height: 1,
-                        depth: 1,
-                        marker: {
-                          enabled: true
-                        }
-                      }
-                    },
-                    title: {
-                        text: 'a 3D Scatter Chart'
-                    },
-                    subtitle: {
-                        text: 'using x y z coordinates'
-                    },
-                    yAxis: {
-                      // min: min_y,
-                      // max: max_y,
-                    },
-                    xAxis: {
-                      // min: min_x,
-                      // max: max_x,
-                      gridLineWidth: 1
-                    },
-                    zAxis: {
-                      // min: min_z,
-                      // max: max_z,
-                      showFirstLabel: false
-                    },
-                    series: [{
-                      lineWidth: 1,
-                      data: plot_data, 
-                      /*[
-                          // [X, Y, Z]
-                        [1, 1, 1],
-                        [1, 1, 2],
-                        [1, 1, 5],
-                        [2, 3, 2],
-                        [2, 6, 4],
-                        [20, 20, 20],
-                        [4, 2, 8],
-                        [7, 1, 3],
-                        [7, 1, 5],
-                        [8, 1, 5]
-                      ]*/
-                    }]
-                });              
-
-
-                // Add mouse events for rotation
-                $(chart.container).bind('mousedown.hc touchstart.hc', function (eStart) {
-                  eStart = chart.pointer.normalize(eStart);
-
-                  var posX = eStart.pageX,
-                      posY = eStart.pageY,
-                      alpha = chart.options.chart.options3d.alpha,
-                      beta = chart.options.chart.options3d.beta,
-                      newAlpha,
-                      newBeta,
-                      sensitivity = 5; // lower is more sensitive
-
-                  $(document).bind({
-                      'mousemove.hc touchdrag.hc': function (e) {
-                          // Run beta
-                        newBeta = beta + (posX - e.pageX) / sensitivity;
-                        chart.options.chart.options3d.beta = newBeta;
-                        // Run alpha
-                        newAlpha = alpha + (e.pageY - posY) / sensitivity;
-                        chart.options.chart.options3d.alpha = newAlpha;
-
-                        chart.redraw(false);
-
-                      },
-                      'mouseup touchend': function () {
-                        $(document).unbind('.hc');
-                      }
-                  });
-                });
-
-              });
-
-            </script>
-
-
-          </div>
-        </div>
-      </div>
-
-      <div class="m-1 tab-pane fade" id="chat" role="tabpanel" aria-labelledby="chat-tab">
-        <div class="row">
-          <div class="col-sm-12 pt-5">
-
-            <div id="chat-body-wrapper">
-
-              <!-- <div class="chat-msg-wrapper chat-msg-wrapper-own">
-                <div class="chat-msg-head">
-                  <span class="chat-msg-date">00:00:00</span>
-                  <a class="chat-msg-nick" data-nick-name="@nickname" onclick="prependNickName( '@nickname' )">@nickname</a> 
-                </div>
-                <div class="chat-msg-body">
-                  @nickname Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
-                </div>
-                <div class="chat-msg-body chat-msg-body-info">
-                  <span class="gray">Track</span>: <span class="blue">uk_silverstone_gp</span>, <span class="gray">Car</span>: <span class="blue">ferrari_f388_gt3</span>
-                </div>
-              </div> -->
-
-            </div>
-
-            <div id="chat-footer-wrapper">
-              <div class="input-group mb-2 mr-sm-2">
-                <input type="text" class="form-control" id="msg-input" placeholder="Message ...">
-                <div class="input-group-btn">
-                  <button class="btn btn-primary" id="send-msg-btn">Send</button>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      <div class="m-3 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
-        <div class="row">
-          <div class="col-sm-12">
-
-            <div>
-              <div class="form-group row">
-                <label class="col-sm-2 col-form-label">PS4 IP Address</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" id="settings-ps4-host" placeholder="192.168.0.233">
-                </div>
-              </div>
-              <div class="form-group row">
-                <label class="col-sm-2 col-form-label">PS4 Port</label>
-                <div class="col-sm-10">
-                  <input type="text" class="form-control" id="settings-ps4-port" placeholder="default: ( 9996 )" value="9996">
-                </div>
-              </div>
-
-              <div class="text-center">
-                <button class="btn btn-primary" id="settings-save-btn">Save</button>
-              </div>
-
-            </div>
-
-          </div>
-        </div>
-      </div>
+      <div class="m-1 tab-pane fade show active" id="dev0" role="tabpanel" aria-labelledby="dev0-tab"></div>
+      <div class="m-1 tab-pane fade" id="telemetry" role="tabpanel" aria-labelledby="telemetry-tab"></div>
+      <div class="m-1 tab-pane fade" id="lapmap" role="tabpanel" aria-labelledby="lapmap-tab"></div>
+      <div class="m-1 tab-pane fade" id="chat" role="tabpanel" aria-labelledby="chat-tab"></div>
+      <div class="m-3 tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab"></div>
+      <!--[ gtk-widgets.css ]-->
 
     </div>
 
-    <script>
-    TABs.telemetry = $('#telemetry-tab');
-    TABs.lapmap = $('#lapmap-tab');
-    TABs.chat = $('#chat-tab');
-    TABs.settings = $('#settings-tab');
+    <script type="text/javascript">
+
+      renderPartial('dev0');
+      renderPartial('telemetry');
+      renderPartial('lapmap');
+      renderPartial('chat');
+      renderPartial('settings');
+
+      TABs.dev0 = $('#dev0-tab');
+      TABs.telemetry = $('#telemetry-tab');
+      TABs.lapmap = $('#lapmap-tab');
+      TABs.chat = $('#chat-tab');
+      TABs.settings = $('#settings-tab');
     </script>
 
   </body>
@@ -535,87 +157,28 @@ const { dialog } = require('electron').remote;
 
 <script>
 
+
+
+TelChart.addChart({ telemetry: 'Speed', fgClr: '#F00', mul_const: 0.31, });
+TelChart.addChart({ telemetry: 'Gear', fgClr: '#0F7', mul_const: (100/8), });
+TelChart.addChart({ telemetry: 'RPM', fgClr: '#07F', mul_const: 1, });
+TelChart.addChart({ telemetry: 'Gas', fgClr: '#F0F', mul_const: 100, });
+TelChart.addChart({ telemetry: 'Brake', fgClr: '#F00', mul_const: 100, });
+
 // let Plotly = require('plotly.js-dist');
 
 // WebGL
 let Plotly = require('plotly.js-gl3d-dist');
-
-let plot_delay = 1000;
-let last_plot = Date.now();
-
-async function plot( _coords ){
-
-  if( (last_plot + plot_delay) > Date.now() ) return;
-  last_plot = Date.now();
-
-  function unpackCoords(rows, key) { return rows.map(function(row) { return row[key]; }); }
-  function unpackColor(rows) { return rows.map(function(row) { return row.speed_tracker ? '#0F7' : '#F70'; }); }
-  let x = unpackCoords(_coords , 'x');
-  let y = unpackCoords(_coords , 'y');
-  let z = unpackCoords(_coords , 'z'); 
-  let color = unpackColor(_coords ); // , 'speed_tracker');
-
-  Plotly.plot('graph', [{
-    type: 'scatter3d',
-    mode: 'lines',
-    x,
-    y,
-    z,
-    opacity: 1,
-    line: {
-      color,
-      width: 6,
-      reversescale: true
-    }
-  }], {
-    height: 640
-  });
-
-}
-
-// Plotly.d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/3d-line1.csv', function(err, rows){
-//   // function unpack(rows, key) {
-//   //   return rows.map(function(row) { return row[key]; });
-//   // }
-//   // var x = unpack(rows , 'x');
-//   // var y = unpack(rows , 'y');
-//   // var z = unpack(rows , 'z'); 
-//   // var c = unpack(rows , 'color');
-//   let x = [170, -65, -80, 30];
-//   let y = [100, -100, 30, -70];
-//   let z = [250, 250, -80, -56];
-//   let c = ['#F00', '#0F0', '#00F', '#F0F'];
-//   Plotly.plot('graph', [{
-//     type: 'scatter3d',
-//     mode: 'lines',
-//     x: x,
-//     y: y,
-//     z: z,
-//     opacity: 1,
-//     line: {
-//       width: 6,
-//       color: c,
-//       reversescale: false
-//     }
-//   }], {
-//     height: 640
-//   });
-// });
 
 let ACGearUP = null;
 const sock = new ( require('./common/Sock') )();
 const chat_body = $('#chat-body-wrapper');
 
 sock.on('connect', ()=>{
-  // console.log(' sock.on(connect) => ...');
   sock.emit('get-all-msgs', {});
-
 });
 
 async function addMsg( data_t ){
-
-  // console.log( {data_t} );
-  // console.log('sock.on("msg")');
 
   try{
     let carName = (''+data_t.carName).trim();
@@ -674,8 +237,6 @@ sock.on('get-all-msgs', (data_t)=>{
 function prependNickName( nick ){
   $('#msg-input').val( '@'+(''+nick).replace(/@/g, '')+', '+$('#msg-input').val() );
 }
-
-// chat_body.HTML('');
 
 $('#send-msg-btn').on( 'click', ()=>{
   let msg = $('#msg-input').val().trim();
@@ -773,20 +334,26 @@ async function Init(){
     gear_value.textContent = telemetry.gear;
 
     // TRACK-MAP
-
     let speed_tracker = telemetry.coords.speed_tracker;
     let coords_t = telemetry.coords.coords;
 
     // coords.push({x: ((+coords_t.x.curr) *10000), y: ((+coords_t.y.curr) *10000), z: ((+coords_t.z.curr) *100), speed_tracker });
-    coords.push({x: (+coords_t.x.curr), y: (+coords_t.y.curr), z: (+coords_t.z.curr), speed_tracker });
-    telemetry_array.push( telemetry );
+    // coords.push({x: (+coords_t.x.curr), y: (+coords_t.y.curr), z: (+coords_t.z.curr), speed_tracker });
+    // telemetry_array.push( telemetry );
     // plot( coords );
    
-    addToChart([(+coords_t.x.curr), (+coords_t.y.curr), (+coords_t.z.curr)]);
+    // addToChart([(+coords_t.x.curr), (+coords_t.y.curr), (+coords_t.z.curr)]);
 
     // @24 UPD/sec
     // monza: +- 4000 coords, += 5.793 kilometres
     // if( coords.length >= 20000 ) coords.shift();
+
+    TelChart.pushData('Speed', (+telemetry.speed.curr) );
+    TelChart.pushData('Gear', (telemetry.gear) );
+    TelChart.pushData('RPM', (perc) );
+    TelChart.pushData('Gas', (+telemetry.raw_all_telemetry.gas) );
+    TelChart.pushData('Brake', (+telemetry.raw_all_telemetry.brake) );
+    TelChart.update();
 
   });
 

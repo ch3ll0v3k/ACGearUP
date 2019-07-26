@@ -77,6 +77,8 @@ Screenshots
 
 <img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/Lotus-98t-Spa.png" width="720px" height="384px"/>
 
+<img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/SP-2.png" width="720px" height="384px"/>
+
 ###### Lap
 <img src="https://github.com/ch3ll0v3k/ACGearUP/blob/master/imgs/lap-map.png" width="720px" height="384px"/>
 
