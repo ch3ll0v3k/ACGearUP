@@ -21,7 +21,7 @@
     "mii-logger.js": "^1.1.77",
     "plotly.js-dist": "^1.48.3",
     "plotly.js-gl3d-dist": "^1.48.3",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.4.0",
     "socket.io-client": "^2.2.0"
   }
 }
